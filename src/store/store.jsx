@@ -10,17 +10,20 @@ if (!config) {
 }
 
 const withStore = (WrappedComponent, propsMap = () => {}) => {
+  const defaultState = {
+    toggl: {
+      result: [],
+      error: null,
+      life: null,
+    },
+    byTag: {},
+  };
+
   return class extends React.Component {
     constructor(props) {
       super(props);
       this.fetchTogglEntries = this.fetchTogglEntries.bind(this);
-      this.state = {
-        toggl: {
-          entries: [],
-          error: null,
-          life: null,
-        },
-      };
+      this.state = defaultState;
     }
 
     funcStore() {
@@ -33,11 +36,12 @@ const withStore = (WrappedComponent, propsMap = () => {}) => {
       const headers = {
         Authorization: `Basic ${config.toggl.apiKey}`,
       };
-      this.setState({
+      this.setState(prevState => ({
         toggl: {
+          ...prevState.toggl,
           life: 'loading',
         },
-      });
+      }));
       fetch('https://www.toggl.com/api/v8/time_entries', { mode: 'cors', headers })
         .then(
           (result) => {
@@ -46,17 +50,31 @@ const withStore = (WrappedComponent, propsMap = () => {}) => {
                 (yess) => {
                   this.setState({
                     toggl: {
-                      entries: yess,
+                      result: yess,
                       error: null,
                       life: null,
                     },
+                  });
+                  const dictByTag = {};
+                  yess.forEach((element) => {
+                    if (element.tags) {
+                      element.tags.forEach((tag) => {
+                        if (tag in dictByTag) {
+                          dictByTag[tag].push(element);
+                        } else {
+                          dictByTag[tag] = [element];
+                        }
+                      });
+                    }
+                  });
+                  this.setState({
+                    byTag: dictByTag,
                   });
                 },
               );
             } else {
               this.setState({
                 toggl: {
-                  entries: this.state.toggl.entries,
                   life: null,
                   error: result.status,
                 },
@@ -66,7 +84,6 @@ const withStore = (WrappedComponent, propsMap = () => {}) => {
         ).catch(
           err => this.setState({
             toggl: {
-              entries: this.state.toggl.entries,
               error: err,
               life: null,
             },
