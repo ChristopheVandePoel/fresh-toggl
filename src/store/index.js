@@ -1,3 +1,3 @@
-import withStore from './store';
+import withTogglStore from './togglStore';
 
-export default withStore;
+export { withTogglStore };

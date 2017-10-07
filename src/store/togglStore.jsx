@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 let config = require('./config.js').default;
 
@@ -9,7 +10,7 @@ if (!config) {
   };
 }
 
-const withStore = (WrappedComponent, propsMap = () => {}) => {
+const withTogglStore = (WrappedComponent, propsMap = () => {}) => {
   const defaultState = {
     toggl: {
       result: [],
@@ -19,15 +20,16 @@ const withStore = (WrappedComponent, propsMap = () => {}) => {
     byTag: {},
   };
 
-  return class extends React.Component {
+  class togglStore extends React.Component {
     constructor(props) {
       super(props);
       this.fetchTogglEntries = this.fetchTogglEntries.bind(this);
       this.state = defaultState;
     }
 
-    funcStore() {
+    funcStore(store = {}) {
       return ({
+        ...store,
         fetchTogglEntries: this.fetchTogglEntries,
       });
     }
@@ -94,10 +96,20 @@ const withStore = (WrappedComponent, propsMap = () => {}) => {
     render() {
       const newProps = propsMap(this.state);
       return (
-        <WrappedComponent {...this.props} newProps={newProps} store={this.funcStore()} />
+        <WrappedComponent {...this.props} togglData={newProps} store={this.funcStore(this.props.store)} />
       );
     }
+  }
+
+  togglStore.defaultProps = {
+    store: {},
   };
+
+  togglStore.propTypes = {
+    store: PropTypes.shape({}).isRequired,
+  };
+
+  return togglStore;
 };
 
-export default withStore;
+export default withTogglStore;
