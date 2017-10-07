@@ -37,6 +37,9 @@ export class TogglContainer extends React.Component {
   }
 
   render() {
+    const { togglData, store } = this.props;
+    const { error, life, result: entries } = togglData.togglFetched;
+    const { taggedItems } = togglData;
     return (
       <div>
         Toggl data:
@@ -72,4 +75,4 @@ const mapToProps = store => ({
   taggedItems: store.byTag,
 });
 
-export default withTogglStore(TogglContainer);
+export default withTogglStore(TogglContainer, mapToProps);
